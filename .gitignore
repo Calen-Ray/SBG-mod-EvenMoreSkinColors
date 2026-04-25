@@ -27,6 +27,11 @@ Thumbs.db
 # Misc
 *.log
 
+# Internal notes for Claude / coding agents — not part of the repo
+CLAUDE.md
+TODO.md
+AGENTS.md
+
 # Dev-time screenshots (keep locally but don't push).
 # icon.png is the official Thunderstore package icon and must be tracked.
 *.png
