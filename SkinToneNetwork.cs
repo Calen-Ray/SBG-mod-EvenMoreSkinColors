@@ -29,7 +29,12 @@ namespace EvenMoreSkinColors
     {
         private static bool _clientHandlersRegistered;
         private static bool _serverHandlersRegistered;
+        private static bool _serverDisconnectHooked;
         private static readonly Dictionary<uint, SkinToneSelection> ServerSelections = new Dictionary<uint, SkinToneSelection>();
+        // Connections that have proven they speak our protocol by sending a snapshot or update
+        // request. Server-only state. We broadcast state messages exclusively to these so
+        // vanilla clients in the same lobby don't receive an unknown msg id and disconnect.
+        private static readonly HashSet<int> ModdedConnections = new HashSet<int>();
 
         internal static void OnClientConnected()
         {
@@ -86,7 +91,39 @@ namespace EvenMoreSkinColors
 
             NetworkServer.ReplaceHandler<SkinToneUpdateRequestMsg>(OnUpdateRequest);
             NetworkServer.ReplaceHandler<SkinToneSnapshotRequestMsg>(OnSnapshotRequest);
+            if (!_serverDisconnectHooked)
+            {
+                NetworkServer.OnDisconnectedEvent += OnServerConnectionDisconnected;
+                _serverDisconnectHooked = true;
+            }
             _serverHandlersRegistered = true;
+        }
+
+        private static void OnServerConnectionDisconnected(NetworkConnectionToClient conn)
+        {
+            if (conn != null)
+            {
+                ModdedConnections.Remove(conn.connectionId);
+            }
+        }
+
+        private static void SendToModdedConnections(SkinToneStateMsg state)
+        {
+            // Iterate all known connections and target only those that have demonstrated they
+            // speak our protocol. Mirror disconnects clients that receive unknown message ids,
+            // so a blanket SendToAll would kick vanilla peers in mixed lobbies.
+            foreach (NetworkConnectionToClient connection in NetworkServer.connections.Values)
+            {
+                if (connection == null)
+                {
+                    continue;
+                }
+                if (!ModdedConnections.Contains(connection.connectionId))
+                {
+                    continue;
+                }
+                connection.Send(state);
+            }
         }
 
         private static void OnStateMessage(SkinToneStateMsg msg)
@@ -115,6 +152,10 @@ namespace EvenMoreSkinColors
                 return;
             }
 
+            // Sender is by definition modded — they sent us a custom message type. Track them
+            // so subsequent SendToModdedConnections fan-outs reach this client.
+            ModdedConnections.Add(conn.connectionId);
+
             PlayerCosmetics cosmetics = conn.identity.GetComponent<PlayerCosmetics>();
             if (cosmetics == null)
             {
@@ -142,7 +183,7 @@ namespace EvenMoreSkinColors
                 ServerSelections.Remove(cosmetics.netId);
             }
 
-            NetworkServer.SendToAll(BuildState(cosmetics.netId, selection));
+            SendToModdedConnections(BuildState(cosmetics.netId, selection));
         }
 
         private static void OnSnapshotRequest(NetworkConnectionToClient conn, SkinToneSnapshotRequestMsg _)
@@ -151,6 +192,11 @@ namespace EvenMoreSkinColors
             {
                 return;
             }
+
+            // Snapshot request is the canonical "I'm modded" signal — only modded clients have
+            // the serializer for this message id. Mark the connection before replying so the
+            // first state msg fan-out reaches them.
+            ModdedConnections.Add(conn.connectionId);
 
             foreach (KeyValuePair<uint, SkinToneSelection> pair in ServerSelections)
             {

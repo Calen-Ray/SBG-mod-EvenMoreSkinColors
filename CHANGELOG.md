@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.0
+
+- Stop kicking vanilla clients out of modded lobbies. The skin-tone state broadcast was using
+  Mirror's `SendToAll`, which delivered our custom message id to vanilla peers — Mirror
+  disconnects the offending client on unknown messages. The host now tracks which connections
+  have proven they speak this protocol (via snapshot or update requests) and fans out only to
+  those, leaving vanilla peers untouched.
+- Clean up the modded-connections set on disconnect via `NetworkServer.OnDisconnectedEvent`
+  so reconnecting clients get re-detected on their next snapshot request.
+- Silence the per-event `EMSC_DEBUG` broadcast/receive/apply/revert log lines by default; flip
+  `Diagnostics.VerboseLogging = true` to bring them back when reporting an issue.
+
 ## 0.1.3
 
 - Remove the redundant "Show/Hide Wheel" toolbar button. The whole-panel minimize from 0.1.2

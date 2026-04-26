@@ -44,7 +44,7 @@ namespace EvenMoreSkinColors
             _snapshot.LastBroadcastNetId = netId;
             _snapshot.LastBroadcastColorHex = SkinToneSelection.ToHtml(selection.BaseColor);
             _snapshot.LastEvent = $"broadcast:{netId}";
-            Plugin.Log.LogInfo($"EMSC_DEBUG broadcast netId={netId} enabled={selection.Enabled} color={_snapshot.LastBroadcastColorHex}");
+            if (Plugin.Instance != null && Plugin.Instance.verboseLoggingConfig.Value) Plugin.Log.LogInfo($"EMSC_DEBUG broadcast netId={netId} enabled={selection.Enabled} color={_snapshot.LastBroadcastColorHex}");
         }
 
         internal static void RecordReceive(uint netId, SkinToneSelection selection)
@@ -52,7 +52,7 @@ namespace EvenMoreSkinColors
             _snapshot.LastReceivedNetId = netId;
             _snapshot.LastReceivedColorHex = SkinToneSelection.ToHtml(selection.BaseColor);
             _snapshot.LastEvent = $"receive:{netId}";
-            Plugin.Log.LogInfo($"EMSC_DEBUG receive netId={netId} enabled={selection.Enabled} color={_snapshot.LastReceivedColorHex}");
+            if (Plugin.Instance != null && Plugin.Instance.verboseLoggingConfig.Value) Plugin.Log.LogInfo($"EMSC_DEBUG receive netId={netId} enabled={selection.Enabled} color={_snapshot.LastReceivedColorHex}");
         }
 
         internal static void RecordApplyPreview(SkinToneSelection selection)
@@ -61,7 +61,7 @@ namespace EvenMoreSkinColors
             _snapshot.LastAppliedWasPreview = true;
             _snapshot.LastAppliedColorHex = SkinToneSelection.ToHtml(selection.BaseColor);
             _snapshot.LastEvent = "apply-preview";
-            Plugin.Log.LogInfo($"EMSC_DEBUG apply preview enabled={selection.Enabled} color={_snapshot.LastAppliedColorHex}");
+            if (Plugin.Instance != null && Plugin.Instance.verboseLoggingConfig.Value) Plugin.Log.LogInfo($"EMSC_DEBUG apply preview enabled={selection.Enabled} color={_snapshot.LastAppliedColorHex}");
         }
 
         internal static void RecordApplyPlayer(uint netId, SkinToneSelection selection)
@@ -70,7 +70,7 @@ namespace EvenMoreSkinColors
             _snapshot.LastAppliedWasPreview = false;
             _snapshot.LastAppliedColorHex = SkinToneSelection.ToHtml(selection.BaseColor);
             _snapshot.LastEvent = $"apply-player:{netId}";
-            Plugin.Log.LogInfo($"EMSC_DEBUG apply player netId={netId} enabled={selection.Enabled} color={_snapshot.LastAppliedColorHex}");
+            if (Plugin.Instance != null && Plugin.Instance.verboseLoggingConfig.Value) Plugin.Log.LogInfo($"EMSC_DEBUG apply player netId={netId} enabled={selection.Enabled} color={_snapshot.LastAppliedColorHex}");
         }
 
         internal static void RecordRevert(uint netId, bool isPreview)
@@ -78,7 +78,7 @@ namespace EvenMoreSkinColors
             _snapshot.LastAppliedNetId = netId;
             _snapshot.LastAppliedWasPreview = isPreview;
             _snapshot.LastEvent = isPreview ? "revert-preview" : $"revert-player:{netId}";
-            Plugin.Log.LogInfo($"EMSC_DEBUG revert {(isPreview ? "preview" : $"player netId={netId}")}");
+            if (Plugin.Instance != null && Plugin.Instance.verboseLoggingConfig.Value) Plugin.Log.LogInfo($"EMSC_DEBUG revert {(isPreview ? "preview" : $"player netId={netId}")}");
         }
     }
 }
