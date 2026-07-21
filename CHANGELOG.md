@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.1
+
+- Fix compatibility with the July 2026 Super Battle Golf engine update:
+  - `PlayerCustomizationMenu.characterPreview` (type `CharacterPreview`, removed) was replaced
+    by `preview` (type `CustomizationMenuPreview`); updated all call sites.
+  - `PlayerCosmetics.GetEquippedLoadoutIndex()` lost its parameterless overload in favor of
+    `GetEquippedLoadoutIndex(Team)`; now resolves the local player's effective team via
+    `PlayerCosmeticsSwitcher`.
+  - Rewrote the custom skin-tone application off the now-deleted
+    `PlayerCosmeticsSwitcher.skinColorProps` `MaterialPropertyBlock` onto direct
+    `Renderer.material` mutation, matching vanilla's new per-material skin-color
+    architecture. Verified live end-to-end via the SBGDevHarness test harness: applied color
+    and read-back color matched exactly.
+
 ## 0.2.0
 
 - Stop kicking vanilla clients out of modded lobbies. The skin-tone state broadcast was using

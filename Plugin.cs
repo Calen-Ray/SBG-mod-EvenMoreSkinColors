@@ -11,7 +11,7 @@ namespace EvenMoreSkinColors
     {
         public const string ModGuid = "cray.evenmoreskincolors";
         public const string ModName = "EvenMoreSkinColors";
-        public const string ModVersion = "0.2.0";
+        public const string ModVersion = "0.2.1";
 
         internal static ManualLogSource Log;
         internal static Plugin Instance;
