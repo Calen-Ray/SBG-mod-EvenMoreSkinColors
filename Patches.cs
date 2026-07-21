@@ -43,8 +43,8 @@ namespace EvenMoreSkinColors
             }
 
             if (PlayerCustomizationMenu.Instance != null &&
-                PlayerCustomizationMenu.Instance.characterPreview != null &&
-                ReferenceEquals(PlayerCustomizationMenu.Instance.characterPreview.cosmeticsSwitcher, __instance))
+                PlayerCustomizationMenu.Instance.preview != null &&
+                ReferenceEquals(PlayerCustomizationMenu.Instance.preview.cosmeticsSwitcher, __instance))
             {
                 SkinToneState.ApplyToPreview(PlayerCustomizationMenu.Instance);
             }
@@ -62,14 +62,14 @@ namespace EvenMoreSkinColors
             // We must land outside the Skincolors GridLayoutGroup: once inside, its rebuild
             // squashes our panel into a ~50px grid cell, injects VerticalLayoutGroup +
             // ContentSizeFitter + a "Content" wrapper around our children, and ends up hiding
-            // AdvancedArea — which is why the wheel panel was unresponsive. characterPreview
+            // AdvancedArea — which is why the wheel panel was unresponsive. preview
             // sits on the "Preview" panel (Skincolors' sibling container), so go one level up
-            // to Preview via the CharacterPreview component; fall back to skin-color container
-            // walk only if the preview reference is missing.
+            // to Preview via the CustomizationMenuPreview component; fall back to skin-color
+            // container walk only if the preview reference is missing.
             Transform panelParent = null;
-            if (__instance.characterPreview != null)
+            if (__instance.preview != null)
             {
-                panelParent = __instance.characterPreview.transform;
+                panelParent = __instance.preview.transform;
             }
             if (panelParent == null)
             {

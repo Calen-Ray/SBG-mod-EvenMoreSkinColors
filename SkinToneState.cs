@@ -102,7 +102,7 @@ namespace EvenMoreSkinColors
 
         internal static void ApplyToPreview(PlayerCustomizationMenu menu)
         {
-            if (menu == null || menu.characterPreview == null || menu.characterPreview.cosmeticsSwitcher == null)
+            if (menu == null || menu.preview == null || menu.preview.cosmeticsSwitcher == null)
             {
                 return;
             }
@@ -110,12 +110,12 @@ namespace EvenMoreSkinColors
             if (_localSelection.Enabled)
             {
                 SkinToneDebugState.RecordApplyPreview(_localSelection);
-                SkinToneMaterialApplier.Apply(menu.characterPreview.cosmeticsSwitcher, _localSelection);
+                SkinToneMaterialApplier.Apply(menu.preview.cosmeticsSwitcher, _localSelection);
             }
             else
             {
                 SkinToneDebugState.RecordRevert(0, isPreview: true);
-                RevertToVanilla(menu.characterPreview.cosmeticsSwitcher);
+                RevertToVanilla(menu.preview.cosmeticsSwitcher);
             }
         }
 
@@ -211,7 +211,9 @@ namespace EvenMoreSkinColors
 
         internal static void OnLocalPlayerStarted(PlayerCosmetics cosmetics)
         {
-            ActivateLoadout(cosmetics.GetEquippedLoadoutIndex(), applyPreview: true, broadcast: false);
+            PlayerCosmeticsSwitcher switcher = cosmetics.GetComponent<PlayerCosmeticsSwitcher>();
+            Team team = switcher != null ? switcher.GetEffectiveTeam() : Team.None;
+            ActivateLoadout(cosmetics.GetEquippedLoadoutIndex(team), applyPreview: true, broadcast: false);
             TryApplyFor(cosmetics);
             SkinToneNetwork.TryBroadcastLocalSelection(_localSelection);
         }

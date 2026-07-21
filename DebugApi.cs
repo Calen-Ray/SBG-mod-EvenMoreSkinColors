@@ -40,8 +40,8 @@ namespace EvenMoreSkinColors
             PlayerInfo localPlayer = GameManager.LocalPlayerInfo;
             PlayerCosmetics cosmetics = localPlayer != null ? localPlayer.Cosmetics : null;
             PlayerCosmeticsSwitcher previewSwitcher = PlayerCustomizationMenu.Instance != null &&
-                                                     PlayerCustomizationMenu.Instance.characterPreview != null
-                ? PlayerCustomizationMenu.Instance.characterPreview.cosmeticsSwitcher
+                                                     PlayerCustomizationMenu.Instance.preview != null
+                ? PlayerCustomizationMenu.Instance.preview.cosmeticsSwitcher
                 : null;
 
             return new LocalState

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HarmonyLib;
 using UnityEngine;
 
@@ -5,6 +6,14 @@ namespace EvenMoreSkinColors
 {
     internal static class SkinToneMaterialApplier
     {
+        // Vanilla moved skin-color application off a shared MaterialPropertyBlock (the
+        // PlayerCosmeticsSwitcher.skinColorProps field this used to reflect into — removed
+        // this update) onto direct Renderer.material mutation instead (see
+        // PlayerCosmeticsSwitcher.ApplyCurrentSkinColorToMaterial). We run as a Harmony
+        // postfix on SetSkinColor, so vanilla has already written its own base color into
+        // these same material instances by the time we get here — we just overwrite them
+        // again with the custom color, matching the new architecture instead of layering a
+        // property-block override the new pipeline no longer reads.
         internal static void Apply(PlayerCosmeticsSwitcher switcher, SkinToneSelection selection)
         {
             if (switcher == null || !selection.Enabled)
@@ -12,15 +21,11 @@ namespace EvenMoreSkinColors
                 return;
             }
 
-            var traverse = Traverse.Create(switcher);
-            var propertyBlock = traverse.Field<MaterialPropertyBlock>("skinColorProps").Value ?? new MaterialPropertyBlock();
-            traverse.Field("skinColorProps").SetValue(propertyBlock);
+            ApplyColorToRenderer(switcher.headRenderer, selection.BaseColor);
+            ApplyColorToRenderer(switcher.bodyRenderer, selection.BaseColor);
+            ApplyColorToRenderer(switcher.mouthRenderer, selection.MouthColor);
 
-            ApplyColor(traverse.Field<Renderer>("headRenderer").Value, propertyBlock, selection.BaseColor);
-            ApplyColor(traverse.Field<Renderer>("bodyRenderer").Value, propertyBlock, selection.BaseColor);
-            ApplyColor(traverse.Field<Renderer>("mouthRenderer").Value, propertyBlock, selection.MouthColor);
-
-            object currentHeadModel = traverse.Field("currentHeadModel").GetValue();
+            object currentHeadModel = Traverse.Create(switcher).Field("currentHeadModel").GetValue();
             if (currentHeadModel == null)
             {
                 return;
@@ -33,43 +38,50 @@ namespace EvenMoreSkinColors
             }
 
             bool requireSkinColorTint = Traverse.Create(cosmeticObject).Field("requireSkinColorTint").GetValue<bool>();
-            int tintMaterialIndex = Traverse.Create(cosmeticObject).Field("skinColorTintMaterialIndex").GetValue<int>();
             if (!requireSkinColorTint)
             {
                 return;
             }
 
+            int tintMaterialIndex = Traverse.Create(cosmeticObject).Field("skinColorTintMaterialIndex").GetValue<int>();
             var cosmeticComponent = cosmeticObject as Component;
             if (cosmeticComponent == null)
             {
                 return;
             }
 
+            var materials = new List<Material>();
             foreach (Renderer renderer in cosmeticComponent.GetComponentsInChildren<Renderer>(includeInactive: true))
             {
-                renderer.GetPropertyBlock(propertyBlock);
-                propertyBlock.SetColor("_Color", selection.BaseColor);
+                materials.Clear();
+                renderer.GetMaterials(materials);
                 if (tintMaterialIndex < 0)
                 {
-                    renderer.SetPropertyBlock(propertyBlock);
+                    foreach (Material material in materials)
+                    {
+                        material.SetColor("_Color", selection.BaseColor);
+                    }
                 }
-                else
+                else if (tintMaterialIndex < materials.Count)
                 {
-                    renderer.SetPropertyBlock(propertyBlock, tintMaterialIndex);
+                    materials[tintMaterialIndex].SetColor("_Color", selection.BaseColor);
                 }
             }
         }
 
-        private static void ApplyColor(Renderer renderer, MaterialPropertyBlock propertyBlock, Color color)
+        private static void ApplyColorToRenderer(Renderer renderer, Color color)
         {
             if (renderer == null)
             {
                 return;
             }
 
-            renderer.GetPropertyBlock(propertyBlock);
-            propertyBlock.SetColor("_Color", color);
-            renderer.SetPropertyBlock(propertyBlock);
+            var materials = new List<Material>();
+            renderer.GetMaterials(materials);
+            foreach (Material material in materials)
+            {
+                material.SetColor("_Color", color);
+            }
         }
     }
 }
